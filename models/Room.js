@@ -1,12 +1,7 @@
 const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
-    id: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    type: {
+    roomType: {
         type: String,
         required: true
     },
@@ -14,26 +9,28 @@ const roomSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    maxOccupancy: {
-        type: Number,
-        required: true
-    },
     price: {
         type: Number,
         required: true
     },
-    availability: [{
-        date: {
-            type: String,
-            required: true
-        },
-        availableRooms: {
-            type: Number,
-            required: true
-        }
-    }]
+    totalRooms: {
+        type: Number,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    amenities: {
+        type: String,
+        required: true
+    },
+    maxOccupancy: {
+        type: Number,
+        required: true
+    }
 });
 
-const Room = mongoose.model('Room', roomSchema);
+const Room = mongoose.models.Room || mongoose.model('Room', roomSchema);
 
 module.exports = Room;

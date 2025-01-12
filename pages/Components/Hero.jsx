@@ -1,17 +1,176 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const HeroSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false); 
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRooms, setSelectedRooms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+  const [validationError, setValidationError] = useState(null);
+  const [bookingSummary, setBookingSummary] = useState(null);
+  const [bookingStatus, setBookingStatus] = useState(null);
+
+  useEffect(() => {
+    if (isRoomModalOpen) {
+      fetchRooms();
+    }
+  }, [isRoomModalOpen]);
+
+  const fetchRooms = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/rooms/getRooms');
+      const data = await response.json();
+      if (data.success) {
+        setRooms(data.rooms);
+      } else {
+        throw new Error(data.message || 'Failed to fetch rooms');
+      }
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      setValidationError('Failed to load rooms. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReserveClick = () => {
     setIsModalOpen(true);
+  };
+
+  const handleRoomSelection = (roomType, isAC, quantity) => {
+    setSelectedRooms(prev => {
+      const existingRoom = prev.find(room => room.type === roomType && room.isAC === isAC);
+      
+      if (existingRoom) {
+        if (quantity === 0) {
+          return prev.filter(room => room !== existingRoom);
+        }
+        return prev.map(room => 
+          room === existingRoom ? { ...room, quantity } : room
+        );
+      } else if (quantity > 0) {
+        return [...prev, { type: roomType, isAC, quantity }];
+      }
+      return prev;
+    });
+  };
+
+  const handleValidateBooking = async () => {
+    if (!checkIn || !checkOut) {
+      setValidationError('Please select check-in and check-out dates');
+      return;
+    }
+
+    if (selectedRooms.length === 0) {
+      setValidationError('Please select at least one room');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/booking/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          selectedRooms,
+          adults,
+          children,
+          checkIn,
+          checkOut
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setValidationError(null);
+        setIsRoomModalOpen(false);
+        setIsBookingModalOpen(true);
+        setBookingSummary({
+          totalPrice: data.totalPrice,
+          numberOfNights: data.numberOfNights
+        });
+      } else {
+        setValidationError(data.message);
+      }
+    } catch (error) {
+      console.error('Error validating booking:', error);
+      setValidationError('An error occurred while validating your booking');
+    }
+  };
+
+  const handleReservation = async () => {
+    // Validate booking details
+    if (!bookingDetails.name || !bookingDetails.email || !bookingDetails.phone) {
+      setBookingStatus('Please fill in all required fields');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(bookingDetails.email)) {
+      setBookingStatus('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/booking/reserve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...bookingDetails,
+          selectedRooms,
+          checkIn,
+          checkOut,
+          adults,
+          children,
+          totalPrice: bookingSummary?.totalPrice
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBookingStatus('Your room has been reserved. The hotel will confirm your booking shortly.');
+        // Reset all states after successful booking
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setIsRoomModalOpen(false);
+          setIsBookingModalOpen(false);
+          setIsSummaryModalOpen(false);
+          setSelectedRooms([]);
+          setBookingDetails({
+            name: '',
+            email: '',
+            phone: ''
+          });
+          setBookingStatus(null);
+        }, 3000);
+      } else {
+        setBookingStatus(data.message || 'Failed to reserve room. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error reserving room:', error);
+      setBookingStatus('An error occurred while reserving the room');
+    }
   };
 
   return (
@@ -124,13 +283,197 @@ const HeroSection = () => {
               <button
                 className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
                 onClick={() => {
-                  // Handle reservation logic here
                   if (checkIn && checkOut) {
-                    console.log('Reservation details:', { checkIn, checkOut, adults, children });
                     setIsModalOpen(false);
+                    setIsRoomModalOpen(true);
                   }
                 }}>
-                Confirm Reservation
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Room Selection Modal */}
+      {isRoomModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Select Your Rooms</h3>
+              <button 
+                onClick={() => setIsRoomModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {loading ? (
+              <div className="text-center py-4">Loading rooms...</div>
+            ) : (
+              <div className="space-y-4">
+                {validationError && (
+                  <div className="text-red-500 text-sm">{validationError}</div>
+                )}
+                
+                {rooms.map((room, index) => (
+                  <div key={index} className="border p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-semibold">{room.roomType}</h4>
+                        <p className="text-sm text-gray-600">{room.isAC ? 'AC' : 'Non-AC'}</p>
+                        <p className="text-sm text-gray-600">Max Occupancy: {room.maxOccupancy}</p>
+                        <p className="text-sm font-semibold">₹{room.price}/night</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <select
+                          className="p-2 border rounded-md"
+                          onChange={(e) => handleRoomSelection(room.roomType, room.isAC, Number(e.target.value))}
+                          value={selectedRooms.find(r => r.type === room.roomType && r.isAC === room.isAC)?.quantity || 0}
+                        >
+                          {[...Array(room.totalRooms + 1)].map((_, i) => (
+                            <option key={i} value={i}>{i}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button
+                  className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                  onClick={handleValidateBooking}
+                  disabled={selectedRooms.length === 0}
+                >
+                  Continue to Booking
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Booking Details Modal */}
+      {isBookingModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Enter Your Details</h3>
+              <button 
+                onClick={() => setIsBookingModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={bookingDetails.name}
+                  onChange={(e) => setBookingDetails({...bookingDetails, name: e.target.value})}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={bookingDetails.email}
+                  onChange={(e) => setBookingDetails({...bookingDetails, email: e.target.value})}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={bookingDetails.phone}
+                  onChange={(e) => setBookingDetails({...bookingDetails, phone: e.target.value})}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </div>
+              <button
+                className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                onClick={() => {
+                  if (bookingDetails.name && bookingDetails.email && bookingDetails.phone) {
+                    setIsBookingModalOpen(false);
+                    setIsSummaryModalOpen(true);
+                  }
+                }}
+              >
+                View Summary
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Summary Modal */}
+      {isSummaryModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Booking Summary</h3>
+              <button 
+                onClick={() => setIsSummaryModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="border-b pb-4">
+                <h4 className="font-semibold mb-2">Guest Information</h4>
+                <p>Name: {bookingDetails.name}</p>
+                <p>Email: {bookingDetails.email}</p>
+                <p>Phone: {bookingDetails.phone}</p>
+              </div>
+              <div className="border-b pb-4">
+                <h4 className="font-semibold mb-2">Stay Details</h4>
+                <p>Check-in: {checkIn?.toLocaleDateString()}</p>
+                <p>Check-out: {checkOut?.toLocaleDateString()}</p>
+                <p>Number of Nights: {bookingSummary?.numberOfNights}</p>
+                <p>Adults: {adults}</p>
+                <p>Children: {children}</p>
+              </div>
+              <div className="border-b pb-4">
+                <h4 className="font-semibold mb-2">Room Details</h4>
+                {selectedRooms.map((room, index) => {
+                  const roomDetails = rooms.find(r => r.roomType === room.type && r.isAC === room.isAC);
+                  return (
+                    <div key={index} className="mb-2">
+                      <p>{room.quantity}x {room.type} ({room.isAC ? 'AC' : 'Non-AC'})</p>
+                      <p className="text-sm text-gray-600">₹{roomDetails?.price} per night</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold">Total Amount: ₹{bookingSummary?.totalPrice}</p>
+              </div>
+              {bookingStatus && (
+                <div className={`text-center p-2 rounded ${bookingStatus.includes('reserved') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {bookingStatus}
+                </div>
+              )}
+              <button
+                className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                onClick={handleReservation}
+              >
+                Reserve Now
               </button>
             </div>
           </div>
