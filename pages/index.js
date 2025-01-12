@@ -8,7 +8,7 @@ import Destination from "./Components/Destination";
 import Contact from "./Components/Contact";
 import Testimonial from "./Components/Testimonial";
 import Footer from "./Components/Footer";
-// import Swiper from "./Components/Swiper";
+
 const Index = () => {
   return (
     <>
@@ -26,12 +26,10 @@ const Index = () => {
           </div>
 
           <div id="destinations">
-            {/* <div className="hidden sm:block">
-              <Swiper />
-            </div> */}
-            <div className="">
+         
+           
               <Destination />
-            </div>
+          
           </div>
 
           <div id="testimonials">
