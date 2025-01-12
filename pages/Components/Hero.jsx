@@ -7,6 +7,8 @@ const HeroSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
 
   const handleReserveClick = () => {
     setIsModalOpen(true);
@@ -91,12 +93,40 @@ const HeroSection = () => {
                   placeholderText="Select check-out date"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Adults</label>
+                <select
+                  value={adults}
+                  onChange={(e) => setAdults(Number(e.target.value))}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? 'Adult' : 'Adults'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
+                <select
+                  value={children}
+                  onChange={(e) => setChildren(Number(e.target.value))}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {[0, 1, 2, 3, 4].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? 'Child' : 'Children'}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <button
                 className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
                 onClick={() => {
                   // Handle reservation logic here
                   if (checkIn && checkOut) {
-                    console.log('Dates selected:', { checkIn, checkOut });
+                    console.log('Reservation details:', { checkIn, checkOut, adults, children });
                     setIsModalOpen(false);
                   }
                 }}>
