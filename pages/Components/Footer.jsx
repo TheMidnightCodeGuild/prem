@@ -8,7 +8,7 @@ const Footer = () => {
           className="flex justify-center flex-col-reverse items-center"
           target="_blank"
           rel="noopener noreferrer"
-          href="https://wa.me/918085863266">
+          href="https://wa.me/9827077797">
           <svg
             className="w-10 h-10"
             viewBox="0 0 256 258"

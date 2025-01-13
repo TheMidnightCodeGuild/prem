@@ -23,6 +23,7 @@ const HeroSection = () => {
   const [validationError, setValidationError] = useState(null);
   const [bookingSummary, setBookingSummary] = useState(null);
   const [bookingStatus, setBookingStatus] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isRoomModalOpen) {
@@ -81,6 +82,7 @@ const HeroSection = () => {
       return;
     }
 
+    setIsProcessing(true);
     try {
       const response = await fetch('/api/booking/validate', {
         method: 'POST',
@@ -112,23 +114,24 @@ const HeroSection = () => {
     } catch (error) {
       console.error('Error validating booking:', error);
       setValidationError('An error occurred while validating your booking');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleReservation = async () => {
-    // Validate booking details
     if (!bookingDetails.name || !bookingDetails.email || !bookingDetails.phone) {
       setBookingStatus('Please fill in all required fields');
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(bookingDetails.email)) {
       setBookingStatus('Please enter a valid email address');
       return;
     }
 
+    setIsProcessing(true);
     try {
       const response = await fetch('/api/booking/reserve', {
         method: 'POST',
@@ -150,7 +153,6 @@ const HeroSection = () => {
 
       if (data.success) {
         setBookingStatus('Your room has been reserved. The hotel will confirm your booking shortly.');
-        // Reset all states after successful booking
         setTimeout(() => {
           setIsModalOpen(false);
           setIsRoomModalOpen(false);
@@ -170,8 +172,16 @@ const HeroSection = () => {
     } catch (error) {
       console.error('Error reserving room:', error);
       setBookingStatus('An error occurred while reserving the room');
+    } finally {
+      setIsProcessing(false);
     }
   };
+
+  const LoadingSpinner = () => (
+    <div className="flex justify-center items-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6B6BE3]"></div>
+    </div>
+  );
 
   return (
     <div className="relative h-[93vh] sm:h-screen md:h-screen lg:h-screen xl:h-screen w-full bg-gradient-to-b from-[#AFAFDA] to-white mt-10">
@@ -227,20 +237,20 @@ const HeroSection = () => {
       {/* Reservation Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Reserve Your Stay</h3>
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Reserve Your Stay</h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700">
+                className="text-gray-500 hover:text-gray-700 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+            <div className="space-y-6">
+              <div className="relative">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Check-in Date</label>
                 <DatePicker
                   selected={checkIn}
                   onChange={(date) => setCheckIn(date)}
@@ -248,12 +258,12 @@ const HeroSection = () => {
                   startDate={checkIn}
                   endDate={checkOut}
                   minDate={new Date()}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholderText="Select check-in date"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+              <div className="relative">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Check-out Date</label>
                 <DatePicker
                   selected={checkOut}
                   onChange={(date) => setCheckOut(date)}
@@ -261,16 +271,16 @@ const HeroSection = () => {
                   startDate={checkIn}
                   endDate={checkOut}
                   minDate={checkIn}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholderText="Select check-out date"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Adults</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Adults</label>
                 <select
                   value={adults}
                   onChange={(e) => setAdults(Number(e.target.value))}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   {[1, 2, 3, 4, 5].map((num) => (
                     <option key={num} value={num}>
@@ -280,11 +290,11 @@ const HeroSection = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Children</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Children</label>
                 <select
                   value={children}
                   onChange={(e) => setChildren(Number(e.target.value))}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   {[0, 1, 2, 3, 4].map((num) => (
                     <option key={num} value={num}>
@@ -294,7 +304,7 @@ const HeroSection = () => {
                 </select>
               </div>
               <button
-                className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                className="w-full bg-[#6B6BE3] text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                 onClick={() => {
                   if (checkIn && checkOut) {
                     setIsModalOpen(false);
@@ -311,12 +321,12 @@ const HeroSection = () => {
       {/* Room Selection Modal */}
       {isRoomModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Select Your Rooms</h3>
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Select Your Rooms</h3>
               <button 
                 onClick={() => setIsRoomModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700">
+                className="text-gray-500 hover:text-gray-700 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -324,26 +334,28 @@ const HeroSection = () => {
             </div>
             
             {loading ? (
-              <div className="text-center py-4">Loading rooms...</div>
+              <div className="flex justify-center items-center py-8">
+                <LoadingSpinner />
+              </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {validationError && (
-                  <div className="text-red-500 text-sm">{validationError}</div>
+                  <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm">{validationError}</div>
                 )}
                 
                 {rooms.map((room, index) => (
-                  <div key={index} className="border p-3 sm:p-4 rounded-lg">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <div key={index} className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                       <div>
-                        <h4 className="font-semibold">{room.roomType}</h4>
+                        <h4 className="font-bold text-lg text-gray-900">{room.roomType}</h4>
                         <p className="text-sm text-gray-600">{room.isAC ? 'AC' : 'Non-AC'}</p>
                         <p className="text-sm text-gray-600">Max Occupancy: {room.maxOccupancy}</p>
-                        <p className="text-sm font-semibold">₹{room.price}/night</p>
+                        <p className="text-lg font-bold text-[#6B6BE3] mt-2">₹{room.price}/night</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
                         <select
-                          className="p-2 border rounded-md text-sm"
+                          className="p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                           onChange={(e) => handleRoomSelection(room.roomType, room.isAC, Number(e.target.value))}
                           value={selectedRooms.find(r => r.type === room.roomType && r.isAC === room.isAC)?.quantity || 0}
                         >
@@ -357,11 +369,11 @@ const HeroSection = () => {
                 ))}
                 
                 <button
-                  className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                  className="w-full bg-[#6B6BE3] text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleValidateBooking}
-                  disabled={selectedRooms.length === 0}
+                  disabled={selectedRooms.length === 0 || isProcessing}
                 >
-                  Continue to Booking
+                  {isProcessing ? <LoadingSpinner /> : 'Continue to Booking'}
                 </button>
               </div>
             )}
@@ -372,53 +384,53 @@ const HeroSection = () => {
       {/* Booking Details Modal */}
       {isBookingModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Enter Your Details</h3>
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Enter Your Details</h3>
               <button 
                 onClick={() => setIsBookingModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700">
+                className="text-gray-500 hover:text-gray-700 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={bookingDetails.name}
                   onChange={(e) => setBookingDetails({...bookingDetails, name: e.target.value})}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your full name"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
                 <input
                   type="email"
                   value={bookingDetails.email}
                   onChange={(e) => setBookingDetails({...bookingDetails, email: e.target.value})}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your email"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                 <input
                   type="tel"
                   value={bookingDetails.phone}
                   onChange={(e) => setBookingDetails({...bookingDetails, phone: e.target.value})}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your phone number"
                   required
                 />
               </div>
               <button
-                className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                className="w-full bg-[#6B6BE3] text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                 onClick={() => {
                   if (bookingDetails.name && bookingDetails.email && bookingDetails.phone) {
                     setIsBookingModalOpen(false);
@@ -436,57 +448,58 @@ const HeroSection = () => {
       {/* Booking Summary Modal */}
       {isSummaryModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Booking Summary</h3>
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Booking Summary</h3>
               <button 
                 onClick={() => setIsSummaryModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700">
+                className="text-gray-500 hover:text-gray-700 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">Guest Information</h4>
-                <p className="text-sm">Name: {bookingDetails.name}</p>
-                <p className="text-sm">Email: {bookingDetails.email}</p>
-                <p className="text-sm">Phone: {bookingDetails.phone}</p>
+            <div className="space-y-6">
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <h4 className="font-bold text-lg mb-3">Guest Information</h4>
+                <p className="text-sm text-gray-700">Name: {bookingDetails.name}</p>
+                <p className="text-sm text-gray-700">Email: {bookingDetails.email}</p>
+                <p className="text-sm text-gray-700">Phone: {bookingDetails.phone}</p>
               </div>
-              <div className="border-b pb-4">
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">Stay Details</h4>
-                <p className="text-sm">Check-in: {checkIn?.toLocaleDateString()}</p>
-                <p className="text-sm">Check-out: {checkOut?.toLocaleDateString()}</p>
-                <p className="text-sm">Number of Nights: {bookingSummary?.numberOfNights}</p>
-                <p className="text-sm">Adults: {adults}</p>
-                <p className="text-sm">Children: {children}</p>
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <h4 className="font-bold text-lg mb-3">Stay Details</h4>
+                <p className="text-sm text-gray-700">Check-in: {checkIn?.toLocaleDateString()}</p>
+                <p className="text-sm text-gray-700">Check-out: {checkOut?.toLocaleDateString()}</p>
+                <p className="text-sm text-gray-700">Number of Nights: {bookingSummary?.numberOfNights}</p>
+                <p className="text-sm text-gray-700">Adults: {adults}</p>
+                <p className="text-sm text-gray-700">Children: {children}</p>
               </div>
-              <div className="border-b pb-4">
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">Room Details</h4>
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <h4 className="font-bold text-lg mb-3">Room Details</h4>
                 {selectedRooms.map((room, index) => {
                   const roomDetails = rooms.find(r => r.roomType === room.type && r.isAC === room.isAC);
                   return (
-                    <div key={index} className="mb-2">
-                      <p className="text-sm">{room.quantity}x {room.type} ({room.isAC ? 'AC' : 'Non-AC'})</p>
-                      <p className="text-xs text-gray-600">₹{roomDetails?.price} per night</p>
+                    <div key={index} className="mb-3">
+                      <p className="text-sm font-semibold text-gray-900">{room.quantity}x {room.type} ({room.isAC ? 'AC' : 'Non-AC'})</p>
+                      <p className="text-sm text-gray-600">₹{roomDetails?.price} per night</p>
                     </div>
                   );
                 })}
               </div>
-              <div className="text-right">
-                <p className="text-base sm:text-lg font-semibold">Total Amount: ₹{bookingSummary?.totalPrice}</p>
+              <div className="bg-blue-50 p-4 rounded-xl">
+                <p className="text-xl font-bold text-[#6B6BE3] text-right">Total Amount: ₹{bookingSummary?.totalPrice}</p>
               </div>
               {bookingStatus && (
-                <div className={`text-center p-2 rounded text-sm ${bookingStatus.includes('reserved') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <div className={`p-4 rounded-xl text-center ${bookingStatus.includes('reserved') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
                   {bookingStatus}
                 </div>
               )}
               <button
-                className="w-full bg-[#6B6BE3] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm"
+                className="w-full bg-[#6B6BE3] text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleReservation}
+                disabled={isProcessing}
               >
-                Reserve Now
+                {isProcessing ? <LoadingSpinner /> : 'Reserve Now'}
               </button>
             </div>
           </div>
