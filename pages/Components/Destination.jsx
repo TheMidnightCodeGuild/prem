@@ -25,7 +25,7 @@ const DestinationsNearby = () => {
   }, []);
 
   return (
-    <section className="min-h-screen -my-44 pt-32 sm:pt-0  px-4 sm:px-6 lg:px-8">
+    <section className="min-h-screen pt-32 sm:pt-0  px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
           <h4 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-2">

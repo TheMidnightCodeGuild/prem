@@ -60,7 +60,7 @@ const Testimonial = () => {
 
   return (
     <>
-      <section className="min-h-screen sm:pt-0 pt-36  py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
+      <section className="min-h-screen  -mt-20   px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4">
@@ -94,7 +94,7 @@ const Testimonial = () => {
             className="swiper-container">
             {TestimonialData.map((data) => (
               <SwiperSlide key={data.id}>
-                <div className="bg-white rounded-lg shadow-xl overflow-hidden h-[250px] sm:h-[280px] md:h-[300px] transition-transform hover:scale-[1.02]">
+                <div className="bg-white border-2 border-black rounded-lg shadow-xl overflow-hidden h-[250px] sm:h-[280px] md:h-[300px] ">
                   <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-between h-full">
                     <div className="text-gray-600 italic mb-4 flex-grow overflow-y-auto text-sm sm:text-base">
                       &quot;{data.content}&quot;

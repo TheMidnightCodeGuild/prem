@@ -61,11 +61,11 @@ const Navbar = () => {
       className={`bg-[#B4B4DC] text-black fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}>
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto ">
+      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         <Link
           href="/"
           className="flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse">
-          <div className="relative h-10 xs:h-12 sm:h-14 md:h-24 aspect-square">
+          <div className="relative w-12 h-12 sm:w-12 sm:h-12 md:w-20 md:h-20">
             <Image
               src="/images/logo.svg"
               alt="Logo"
@@ -74,8 +74,8 @@ const Navbar = () => {
               priority
             />
           </div>
-          {/* <span className="text-base xs:text-xl sm:text-2xl  font-semibold whitespace-nowrap">
-            Hotel Prem Chaya
+          {/* <span className="hidden sm:block text-sm sm:text-base md:text-lg lg:text-xl font-semibold whitespace-nowrap">
+            Hotel Prem Chaya Inn
           </span> */}
         </Link>
 
@@ -83,7 +83,7 @@ const Navbar = () => {
         <button
           onClick={toggleMenu}
           type="button"
-          className="inline-flex items-center w-auto h-10 justify-center text-sm  rounded-lg md:hidden transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none"
+          className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg md:hidden hover:bg-gray-100/20 focus:outline-none"
           aria-controls="navbar-default"
           aria-expanded={isMenuOpen}>
           <span className="sr-only">Toggle menu</span>
@@ -118,41 +118,55 @@ const Navbar = () => {
         <div
           className={`${
             isMenuOpen ? "block" : "hidden"
-          } w-full md:block md:w-auto transition-all duration-300 ${
-            isMenuOpen && isMobile ? "bg-black/80 rounded-lg mt-4" : ""
-          }`}
+          } w-full md:block md:w-auto transition-all duration-300`}
           id="navbar-default">
-          <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 md:mt-0 md:flex-row md:space-x-8 rtl:space-x-reverse md:border-0 md:bg-transparent text-white">
-            <li>
+          <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 md:mt-0 md:flex-row md:space-x-4 rtl:space-x-reverse">
+            <li className="my-2 md:my-0">
               <Link
                 href="/#about"
                 onClick={closeMenu}
-                className="block py-2 px-3 text-sm sm:text-base rounded transition-all duration-300 text-black">
+                className="block py-2 px-3 text-sm sm:text-base rounded hover:bg-gray-100/20 transition-all duration-300">
                 About
               </Link>
             </li>
-            <li>
+            <li className="my-2 md:my-0">
               <Link
                 href="/#gallery"
                 onClick={closeMenu}
-                className="block py-2 px-3 text-sm sm:text-base rounded transition-all duration-300 text-black">
+                className="block py-2 px-3 text-sm sm:text-base rounded hover:bg-gray-100/20 transition-all duration-300">
                 Gallery
               </Link>
             </li>
-            <li>
+            <li className="my-2 md:my-0">
               <Link
                 href="/#destinations"
                 onClick={closeMenu}
-                className="block py-2 px-3 text-sm sm:text-base rounded transition-all duration-300 text-black">
+                className="block py-2 px-3 text-sm sm:text-base rounded hover:bg-gray-100/20 transition-all duration-300">
                 Destinations
               </Link>
             </li>
-            <li>
+            <li className="my-2 md:my-0">
               <Link
                 href="/#testimonials"
                 onClick={closeMenu}
-                className="block py-2 px-3 text-sm sm:text-base rounded transition-all duration-300 text-black">
+                className="block py-2 px-3 text-sm sm:text-base rounded hover:bg-gray-100/20 transition-all duration-300">
                 Testimonials
+              </Link>
+            </li>
+              <li className="my-2 md:my-0">
+              <Link
+                href="/Blogs"
+                onClick={closeMenu}
+                className="block py-2 px-3 text-sm sm:text-base rounded hover:bg-gray-100/20 transition-all duration-300">
+                Blogs
+              </Link>
+            </li>
+              <li className="my-2 md:my-0">
+              <Link
+                href="/#contact"
+                onClick={closeMenu}
+                className="block py-2 px-3 text-sm sm:text-base rounded bg-gray-100 hover:bg-gray-200 transition-all duration-300">
+                Enquire Us
               </Link>
             </li>
           </ul>

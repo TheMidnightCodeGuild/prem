@@ -49,7 +49,7 @@ const Contact = () => {
   };
 
   return (
-    <section className="text-gray-600 body-font relative min-h-screen py-8 sm:py-5 md:py-16 lg:py-20 bg-gradient-to-b from-white to-[#AFAFDA]">
+    <section className="text-gray-600 body-font relative min-h-screen py-8 sm:py-5 md:py-16 -mt-24 lg:py-0 bg-gradient-to-b from-white to-[#AFAFDA]">
       <div className="text-center mb-6 sm:mb-8 md:mb-10">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-2 sm:mb-3">
           Our Location
